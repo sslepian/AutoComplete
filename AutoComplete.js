@@ -49,11 +49,11 @@ var AutoComplete = new Class({
 			this.selectSuggestion(target);
 		}.bind(this));
 		
-		this.suggestionList.addEvent('click:relay(li.ac-suggestion)', function(event, target) {
+		this.suggestionList.addEvent('mousedown:relay(li.ac-suggestion)', function(event, target) {
 			this.input.value = target.get('text');
 			this.shadow.value = '';
 			this.input.focus();
-			this.suggestionList.set('display', 'none');
+			this.suggestionList.setStyle('display', 'none');
 		}.bind(this));
 		
 		this.input.addEvent('keypress', function(event) {
@@ -91,7 +91,7 @@ var AutoComplete = new Class({
 					this.input.value = selected[0].get('text');
 					this.shadow.value = '';
 					this.input.focus();
-					this.suggestionList.set('display', 'none');
+					this.suggestionList.setStyle('display', 'none');
 				}
 			}
 		}.bind(this));
@@ -109,7 +109,7 @@ var AutoComplete = new Class({
 		}.bind(this));
 		
 		this.input.addEvent('blur', function(event) {
-			this.suggestionList.set('display', 'none');
+			this.suggestionList.setStyle('display', 'none');
 		}.bind(this));
 		
 	},
@@ -143,7 +143,10 @@ var AutoComplete = new Class({
 			this.suggestionList.grab(
 				new Element('li', {
 					'class': 'ac-suggestion',
-					text: suggestion
+					text: suggestion,
+					styles: {
+						cursor: 'pointer'
+					}
 				})
 			)
 		}.bind(this));
