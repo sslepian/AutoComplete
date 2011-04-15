@@ -5,3 +5,13 @@ AutoComplete enhances a standards HTML INPUT element to provide auto-complete fu
 ##Usage
 
 AutoComplete should to be initialized at a point after the HTML elements become accessible, such as on the *domready* event. To initialize AutoComplete, simply make a call to it passing the id of the INPUT element.
+
+### HTML
+
+    <input type="text" id="autocomplete"></input>
+
+### JavaScript
+
+    var autoComplete = new AutoComplete('autocomplete', {
+        words: ['one', 'two', 'three', 'four', 'five', 'six', 'seven']
+    });
