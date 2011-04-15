@@ -2,7 +2,6 @@ var AutoComplete = new Class({
 	Implements: [Options, Events],
 	options: {
 		words: [],
-		shadow: true,
 		startLength: 1,
 		results: 5
 	},
@@ -10,30 +9,29 @@ var AutoComplete = new Class({
 		this.setOptions(options);
 		
 		this.input = $(target);
+		this.input.addClass('ac-input');
+
+		this.shadow = this.input.clone();
+		this.shadow.set('class', 'ac-shadow');
+		this.shadow.inject(this.input, 'before');
 		
-		if(this.options.shadow) {
-			this.shadow = this.input.clone();
-			this.shadow.set('class', 'acShadow');
-			this.shadow.inject(this.input, 'before');
-			
-			this.input.setStyles({
-				position: 'relative',
-				'z-index': '5',
-				background: 'none'
-			});
-			
-			this.shadow.setStyles({
-				position: 'absolute',
-				'z-index': '1',
-				color: 'grey',
-				padding: this.input.getStyle('padding'),
-				margin: this.input.getStyle('margin'),
-				'border-width': this.input.getStyle('border-width')
-			});
-		}
+		this.input.setStyles({
+			position: 'relative',
+			'z-index': '5',
+			background: 'none'
+		});
+		
+		this.shadow.setStyles({
+			position: 'absolute',
+			'z-index': '1',
+			color: 'grey',
+			padding: this.input.getStyle('padding'),
+			margin: this.input.getStyle('margin'),
+			'border-width': this.input.getStyle('border-width')
+		});
 
 		this.suggestionList =  new Element('ul', {
-			'class': 'acSuggestions',
+			'class': 'ac-suggestions',
 			styles: {
 				position: 'absolute',
 				display: 'none',
@@ -41,22 +39,21 @@ var AutoComplete = new Class({
 				padding: '0',
 				margin: '0',
 				border: '1px solid #CCC',
-				'border-top': 'none',
-				'box-shadow': '2px 2px 2px #888'
+				'border-top': 'none'
 			}
 		});
 		
 		document.body.grab(this.suggestionList);
 
-		this.suggestionList.addEvent('mousemove:relay(li.acSuggestion)', function(event, target) {
+		this.suggestionList.addEvent('mousemove:relay(li.ac-suggestion)', function(event, target) {
 			this.selectSuggestion(target);
 		}.bind(this));
 		
-		this.suggestionList.addEvent('click:relay(li.acSuggestion)', function(event, target) {
+		this.suggestionList.addEvent('click:relay(li.ac-suggestion)', function(event, target) {
 			this.input.value = target.get('text');
 			this.shadow.value = '';
 			this.input.focus();
-			this.suggestionList.hide();
+			this.suggestionList.set('display', 'none');
 		}.bind(this));
 		
 		this.input.addEvent('keypress', function(event) {
@@ -65,36 +62,36 @@ var AutoComplete = new Class({
 				event.preventDefault();
 			}
 			else if(event.key == 'up') {
-				if(!this.suggestionList.isDisplayed()) {
+				if(this.suggestionList.get('display') == 'none') {
 					return;
 				}
-				var selected = $$('li.acSuggestion.selected');
+				var selected = $$('li.ac-suggestion.selected');
 				if(selected[0] && selected[0].getPrevious()) {
 					this.selectSuggestion(selected[0].getPrevious());
 				}
-				else if(this.suggestionList.getLast('li.acSuggestion')) {
-					this.selectSuggestion(this.suggestionList.getLast('li.acSuggestion'));
+				else if(this.suggestionList.getLast('li.ac-suggestion')) {
+					this.selectSuggestion(this.suggestionList.getLast('li.ac-suggestion'));
 				}
 			}
 			else if(event.key == 'down') {
-				if(!this.suggestionList.isDisplayed()) {
+				if(this.suggestionList.get('display') == 'none') {
 					return;
 				}
-				var selected = $$('li.acSuggestion.selected');
+				var selected = $$('li.ac-suggestion.selected');
 				if(selected[0] && selected[0].getNext()) {
 					this.selectSuggestion(selected[0].getNext());
 				}
-				else if(this.suggestionList.getFirst('li.acSuggestion')) {
-					this.selectSuggestion(this.suggestionList.getFirst('li.acSuggestion'));
+				else if(this.suggestionList.getFirst('li.ac-suggestion')) {
+					this.selectSuggestion(this.suggestionList.getFirst('li.ac-suggestion'));
 				}
 			}
 			else if(event.key == 'enter') {
-				var selected = $$('li.acSuggestion.selected');
+				var selected = $$('li.ac-suggestion.selected');
 				if(selected[0]) {
 					this.input.value = selected[0].get('text');
 					this.shadow.value = '';
 					this.input.focus();
-					this.suggestionList.hide();
+					this.suggestionList.set('display', 'none');
 				}
 			}
 		}.bind(this));
@@ -104,6 +101,7 @@ var AutoComplete = new Class({
 			var first = this.showSuggestions(this.input.value);
 			if(first) {
 				this.shadow.value = first;
+				this.shadow.value = this.input.value + this.shadow.value.slice(this.input.value.length, this.shadow.value.length);
 			}
 			else {
 				this.shadow.value = '';
@@ -111,12 +109,12 @@ var AutoComplete = new Class({
 		}.bind(this));
 		
 		this.input.addEvent('blur', function(event) {
-			this.suggestionList.hide();
+			this.suggestionList.set('display', 'none');
 		}.bind(this));
 		
 	},
 	selectSuggestion: function(target) {
-		this.suggestionList.getChildren('li.acSuggestion').each( function(child) {
+		this.suggestionList.getChildren('li.ac-suggestion').each( function(child) {
 			$(child).removeClass('selected');
 		});
 		target.addClass('selected');
@@ -131,7 +129,7 @@ var AutoComplete = new Class({
 		}
 	
 		var suggestions = (Array.filter(this.options.words, function(word) {
-			return word.startsWith(text);
+			return word.startsWith(text, 'i');
 		})).slice(0, this.options.results);
 		
 		if(suggestions.length < 1) {
@@ -144,7 +142,7 @@ var AutoComplete = new Class({
 		suggestions.each(function(suggestion) {
 			this.suggestionList.grab(
 				new Element('li', {
-					'class': 'acSuggestion',
+					'class': 'ac-suggestion',
 					text: suggestion
 				})
 			)
@@ -155,18 +153,19 @@ var AutoComplete = new Class({
 			top: this.input.getPosition().y + this.input.getSize().y,
 			left: this.input.getPosition().x,
 			'z-index': '1000',
-			background: 'white'
+			background: 'white',
+			display: 'block'
 		});
 
-		this.suggestionList.show();
+		// this.suggestionList.show();
 
 		return suggestions[0];
 	}
 });
 
 String.implement({
-	startsWith: function(string) {
+	startsWith: function(string, options) {
 		string = string.escapeRegExp();
-		return this.test('^'+string,'i');
+		return this.test('^'+string, options);
 	}
 });
